@@ -5,7 +5,7 @@ import SocialLogin from "@/components/social-login";
 export default function LogIn() {
   const handleForm = async (data: FormData) => {
     "use server";
-    console.log(data.get("email"), data.get("password")); //  form에서 입력된 데이터를 가져올 수 있다.
+    console.log(data.get("email"), data.get("password"));
     console.log("I'm in the Server!");
   };
   return (
@@ -29,9 +29,9 @@ export default function LogIn() {
           type="password"
           errors={[]}
         />
-        <FormButton loading={false} text="Log in" />
-        <SocialLogin />
+        <FormButton text="Log in" />
       </form>
+      <SocialLogin />
     </div>
   );
 }
