@@ -6,7 +6,6 @@ import SocialLogin from "@/components/social-login";
 import { useFormState } from "react-dom";
 import { createAccount } from "./actions";
 
-//  FormInput에 name 속성을 부여해야 Server Action에 form 데이터를 넘겨줄 수 있다.
 export default function CreateAccount() {
   const [state, action] = useFormState(createAccount, null);
   return (
@@ -21,19 +20,28 @@ export default function CreateAccount() {
           required
           placeholder="Username"
           type="text"
+          errors={state?.fieldErrors.username}
         />
-        <FormInput name="email" required placeholder="Email" type="email" />
+        <FormInput
+          name="email"
+          required
+          placeholder="Email"
+          type="email"
+          errors={state?.fieldErrors.email}
+        />
         <FormInput
           name="password"
           required
           placeholder="Password"
           type="password"
+          errors={state?.fieldErrors.password}
         />
         <FormInput
           name="confirm_password"
           required
           placeholder="Confirm Password"
           type="password"
+          errors={state?.fieldErrors.confirm_password}
         />
         <FormButton text="Create Account" />
         <SocialLogin />
