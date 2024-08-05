@@ -2,7 +2,7 @@ interface IFormInputProps {
   type: string;
   placeholder: string;
   required: boolean;
-  errors: string[]; //  에러는 여러 개일 수 있으니 배열 형식
+  errors?: string[];
   name: string;
 }
 
@@ -10,7 +10,7 @@ export default function FormInput({
   type,
   placeholder,
   required,
-  errors,
+  errors = [],
   name,
 }: IFormInputProps) {
   return (
@@ -22,7 +22,7 @@ export default function FormInput({
         placeholder={placeholder}
         required={required}
       />
-      {errors.map((error, index) => (
+      {errors?.map((error, index) => (
         <span key={index} className="text-red-500 font-medium">
           {error}
         </span>
@@ -30,5 +30,3 @@ export default function FormInput({
     </div>
   );
 }
-
-//  여기서 커스텀할 수 있어야 하는 부분은 input의 type이다. placeholder, required, 에러도 마찬가지다. 이 모든 걸 props으로 가져온다.
