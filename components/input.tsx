@@ -1,3 +1,4 @@
+//  Input Component
 import { InputHTMLAttributes } from "react";
 
 interface IInputProps {
@@ -10,7 +11,6 @@ export default function FormInput({
   name,
   ...rest
 }: IInputProps & InputHTMLAttributes<HTMLInputElement>) {
-  console.log(rest);
   return (
     <div className="flex flex-col gap-2">
       <input
