@@ -6,3 +6,16 @@ datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
+//  User 테이블 생성
+model User {
+  id Int @id @default(autoincrement())  //  이렇게 하면 첫 번째 사용자를 생성할 때, id는 자동으로 1이 될거다.
+  username String @unique
+  email String? @unique
+  password String?
+  phone String? @unique
+  github_id String? @unique
+  avatar String?  //  사용자가 생성할 때 avatar의 기본값
+  created_at DateTime @default(now())  //  사용자가 생성될 때의 시각을 created_at 속성에 추가
+  updated_at DateTime @updatedAt  //  사용자가 수정할 때마다 수정된 시각을 updated_at 속성에 넣을거다.
+}
