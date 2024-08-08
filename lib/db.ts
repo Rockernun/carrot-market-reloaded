@@ -2,14 +2,13 @@ import { Prisma, PrismaClient } from "@prisma/client";
 
 const db = new PrismaClient();
 
-//  사용자 생성
 async function test() {
-  const user = await db.user.create({
-    data: {
-      username: "adsf",
+  const token = await db.sMSToken.findUnique({
+    where: {
+      id: 1,
     },
   });
-  console.log(user);
+  console.log(token);
 }
 
 test();
