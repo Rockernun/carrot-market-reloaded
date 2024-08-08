@@ -7,28 +7,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-//  User 테이블 생성
 model User {
-  id         Int        @id @default(autoincrement()) //  이렇게 하면 첫 번째 사용자를 생성할 때, id는 자동으로 1이 될거다.
-  username   String     @unique
-  email      String?    @unique
-  password   String?
-  phone      String?    @unique
-  github_id  String?    @unique
-  avatar     String? //  사용자가 생성할 때 avatar의 기본값
-  created_at DateTime   @default(now()) //  사용자가 생성될 때의 시각을 created_at 속성에 추가
-  updated_at DateTime   @updatedAt //  사용자가 수정할 때마다 수정된 시각을 updated_at 속성에 넣을거다.
-  SMSToken   SMSToken[]
-}
-
-model SMSToken {
   id         Int      @id @default(autoincrement())
-  token      String   @unique
+  username   String   @unique
+  password   String?
+  email      String?  @unique
+  bio        String?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  Tweet      Tweet[]
+  Like       Like[]
+}
 
-  //  Prisma와 DB에게 userId를 어디서 찾아야 할지, 또는 userId가 무엇인지 알려준다.
-  //  SMSToken의 userId라는 필드가 User 모델의 id라는 값을 참조한다는 거다.
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int
+model Tweet {
+  id         Int      @id @default(autoincrement())
+  tweet      String   @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  Like       Like[]
+}
+
+model Like {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  tweet      Tweet    @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+  tweetId    Int
 }
