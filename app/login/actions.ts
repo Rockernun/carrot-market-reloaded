@@ -6,40 +6,43 @@ import {
   PASSWORD_REGEX_ERROR,
   USERNAME_MIN_LENGTH,
 } from "@/lib/constants";
+import db from "@/lib/db";
+import getSession from "@/lib/session";
+import bcrypt from "bcrypt";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
-function checkPasswords(password: string) {
-  return password === "1234567890";
-}
-
-function correctPasswords(password: string) {
-  return password !== "1234567890";
-}
-
-function checkEmailForm(email: string) {
-  return email.includes("@zod.com");
-}
+const checkEmailExists = async (email: string) => {
+  //  해당 이메일을 사용하는 계정이 있는지 확인
+  const user = await db.user.findUnique({
+    where: {
+      email,
+    },
+    select: {
+      id: true,
+    },
+  });
+  /*
+  if (user) {
+    return true;
+  } else {
+    return false;
+  }
+  */
+  return Boolean(user);
+};
 
 const formSchema = z.object({
   email: z
     .string()
     .email()
     .toLowerCase()
-    .refine(checkEmailForm, "Only @zod.com emails are allowed"),
-  username: z
-    .string({
-      required_error: "Please write your username...",
-    })
-    .min(USERNAME_MIN_LENGTH, "Username should be at least 5 characters long.")
-    .toLowerCase(),
-  password: z
-    .string({
-      required_error: "Password is required...",
-    })
-    .min(PASSWORD_MIN_LENGTH, "Password should be at least 10 characters long.")
-    .regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR)
-    .refine(checkPasswords, "Wrong Password...")
-    .refine(correctPasswords, "Welcome Back!"),
+    .refine(checkEmailExists, "An account with this email does not exist..."), //  이메일 유무에 따른 에러 처리
+  password: z.string({
+    required_error: "Password is required...",
+  }),
+  //.min(PASSWORD_MIN_LENGTH, "Password should be at least 10 characters long.")
+  //.regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
 });
 
 export async function Login(prevState: any, formData: FormData) {
@@ -48,10 +51,31 @@ export async function Login(prevState: any, formData: FormData) {
     username: formData.get("username"),
     password: formData.get("password"),
   };
-  const result = formSchema.safeParse(data);
+  const result = await formSchema.safeParseAsync(data);
   if (!result.success) {
     return result.error.flatten();
   } else {
-    console.log(result.data);
+    const user = await db.user.findUnique({
+      where: {
+        email: result.data.email,
+      },
+      select: {
+        id: true,
+        password: true,
+      },
+    });
+    const ok = await bcrypt.compare(result.data.password, user!.password ?? "");
+    if (ok) {
+      const session = await getSession();
+      session.id = user!.id;
+      redirect("/profile");
+    } else {
+      return {
+        fieldErrors: {
+          password: ["Wrong password."],
+          email: [],
+        },
+      };
+    }
   }
 }

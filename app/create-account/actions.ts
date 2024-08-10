@@ -10,6 +10,7 @@ import { z } from "zod";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import getSession from "@/lib/session";
 
 function checkUsername(username: string) {
   return !username.includes("potato");
@@ -109,15 +110,9 @@ export async function createAccount(prevState: any, formData: FormData) {
         id: true,
       },
     });
-    const cookie = await getIronSession(cookies(), {
-      cookieName: "delicious-carrot",
-      password: process.env.COOKIE_PASSWORD!,
-    });
-    //@ts-ignore
-    cookie.id = user.id; //  쿠키 안에 정보 넣기
-    await cookie.save(); //  저장하기
-    //  그럼 iron session이 user.id 데이터를 내가 만든 COOKIE_PASSWORD로 암호화할 것이다.
-
+    const session = await getSession();
+    session.id = user.id;
+    await session.save();
     redirect("/profile");
   }
 }

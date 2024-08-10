@@ -22,13 +22,6 @@ export default function LogIn() {
           errors={state?.fieldErrors.email}
         />
         <FormInput
-          name="username"
-          required
-          placeholder="Username"
-          type="text"
-          errors={state?.fieldErrors.username}
-        />
-        <FormInput
           name="password"
           required
           placeholder="Password"
