@@ -1,9 +1,11 @@
 "use server";
+import {
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_REGEX,
+  PASSWORD_REGEX_ERROR,
+} from "@/lib/constants";
+import db from "@/lib/db";
 import { z } from "zod";
-
-const passwordRegex = new RegExp(
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*?[#?!@$%^&*-]).+$/
-);
 
 function checkUsername(username: string) {
   return !username.includes("potato");
@@ -17,6 +19,38 @@ const checkPasswords = ({
   confirm_password: string;
 }) => password === confirm_password;
 
+const checkUniqueUserName = async (username: string) => {
+  const user = await db.user.findUnique({
+    where: {
+      username,
+    },
+    select: {
+      id: true, //  필요한 id 데이터만 갖도록 한다.
+    },
+  });
+  //  refine을 사용하기 위해 리턴값을 True/False로 반환하도록 했다.
+  /*if (user) {
+    return false;
+  } else {
+    return true;
+  }*/
+  return !Boolean(user); //  이렇게 작성할 수도 있다.
+};
+
+//  SELECT id FROM User WHERE username="?"
+
+const checkUniqueEmail = async (email: string) => {
+  const user = await db.user.findUnique({
+    where: {
+      email,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return !Boolean(user);
+};
+
 const formSchema = z
   .object({
     username: z
@@ -24,21 +58,24 @@ const formSchema = z
         invalid_type_error: "Username must be a string!",
         required_error: "Where is my username?",
       })
-      .min(3, "Way too short!")
-      //.max(10, "That is too long!")
       .toLowerCase()
       .trim()
-      .transform((username) => `🔥 ${username} 🔥`)
-      .refine(checkUsername, "No potatoes allowed..."),
-    email: z.string().email().toLowerCase(),
+      //.transform((username) => `🔥 ${username} 🔥`)
+      .refine(checkUsername, "No potatoes allowed...")
+      .refine(checkUniqueUserName, "This username is already taken"),
+    email: z
+      .string()
+      .email()
+      .toLowerCase()
+      .refine(
+        checkUniqueEmail,
+        "There is an account already registered with this email..."
+      ),
     password: z
       .string()
-      .min(4)
-      .regex(
-        passwordRegex,
-        "A password must have lowercase, UPPERCASE, a number and special characters."
-      ),
-    confirm_password: z.string().min(4),
+      .min(PASSWORD_MIN_LENGTH)
+      .regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
+    confirm_password: z.string().min(PASSWORD_MIN_LENGTH),
   })
   .refine(checkPasswords, {
     message: "Both passwords should be the same...",
@@ -53,10 +90,8 @@ export async function createAccount(prevState: any, formData: FormData) {
     confirm_password: formData.get("confirm_password"),
   };
 
-  const result = formSchema.safeParse(data);
+  const result = await formSchema.safeParseAsync(data);
   if (!result.success) {
     return result.error.flatten();
-  } else {
-    console.log(result.data);
   }
 }
