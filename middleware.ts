@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
   } else {
     if (exists) {
       //  로그인이 되어 있는 상태
-      return NextResponse.redirect(new URL("/product", request.url));
+      return NextResponse.redirect(new URL("/products", request.url));
     }
   }
 }
