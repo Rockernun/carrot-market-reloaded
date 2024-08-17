@@ -17,9 +17,11 @@ model User {
   avatar     String?
   created_at DateTime   @default(now())
   updated_at DateTime   @updatedAt
-  SMSToken   SMSToken[]
-  Product    Product[]
+  tokens     SMSToken[]
+  products   Product[]
   Tweet      Tweet[]
+  posts      Post[] //  유저가 작성한 모든 Post를 가져올 수 있다.
+  Comment    Comment[]
   Like       Like[]
 }
 
@@ -40,7 +42,7 @@ model Product {
   photo       String
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade) //  product의 소유자가 계정을 삭제하면, product도 삭제됨.
   userId      Int
 }
 
@@ -51,14 +53,47 @@ model Tweet {
   updated_at DateTime @updatedAt
   user       User     @relation(fields: [userId], references: [id])
   userId     Int
-  Like       Like[]
+}
+
+model Post {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  views       Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  //  relationship을 사용해서 해당 User를 가리키는 모든 Post를 가져온다.
+  //  post의 작성자가 계정을 삭제하면 해당 post도 삭제된다.
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   Int
+  comments Comment[] //  post는 어떤 comment들이 자신을 가리키는지 안다.
+  likes    Like[] //  post는 몇 개의 좋아요가 자신을 가리키는지 안다.
+}
+
+model Comment {
+  id         Int      @id @default(autoincrement())
+  payload    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  //  계정과 해당 post가 삭제되면 comment도 삭제된다.
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId Int
+  postId Int
 }
 
 model Like {
-  id         Int      @id @default(autoincrement())
   created_at DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id])
-  userId     Int
-  tweet      Tweet    @relation(fields: [tweetId], references: [id])
-  tweetId    Int
+  updated_at DateTime @updatedAt
+
+  //  계정과 해당 post가 삭제되면 좋아요도 삭제된다.
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId Int
+  postId Int
+
+  //  userId & postId의 조합은 항상 unique(사용자가 하나의 게시물에 하나의 좋아요만 누를 수 있음)
+  @@id(name: "id", [userId, postId])
 }
