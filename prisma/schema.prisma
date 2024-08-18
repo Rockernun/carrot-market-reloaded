@@ -19,10 +19,10 @@ model User {
   updated_at DateTime   @updatedAt
   tokens     SMSToken[]
   products   Product[]
-  Tweet      Tweet[]
+  tweet      Tweet[]
   posts      Post[] //  유저가 작성한 모든 Post를 가져올 수 있다.
-  Comment    Comment[]
-  Like       Like[]
+  comment    Comment[]
+  like       Like[]
 }
 
 model SMSToken {
@@ -47,12 +47,15 @@ model Product {
 }
 
 model Tweet {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   tweet      String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  user       User     @relation(fields: [userId], references: [id])
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  user       User      @relation(fields: [userId], references: [id])
   userId     Int
+  context    String
+  likes      Like[]
+  comments   Comment[]
 }
 
 model Post {
@@ -78,10 +81,12 @@ model Comment {
   updated_at DateTime @updatedAt
 
   //  계정과 해당 post가 삭제되면 comment도 삭제된다.
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId Int
-  postId Int
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post    Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId  Int
+  postId  Int
+  Tweet   Tweet? @relation(fields: [tweetId], references: [id])
+  tweetId Int?
 }
 
 model Like {
@@ -89,10 +94,12 @@ model Like {
   updated_at DateTime @updatedAt
 
   //  계정과 해당 post가 삭제되면 좋아요도 삭제된다.
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId Int
-  postId Int
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post    Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId  Int
+  postId  Int
+  Tweet   Tweet? @relation(fields: [tweetId], references: [id])
+  tweetId Int?
 
   //  userId & postId의 조합은 항상 unique(사용자가 하나의 게시물에 하나의 좋아요만 누를 수 있음)
   @@id(name: "id", [userId, postId])
